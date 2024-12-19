@@ -1,10 +1,12 @@
 from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .models import Choice, Question
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -75,3 +77,15 @@ def get_queryset(self):
     return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[
         :5
     ]
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}!')
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'polls/register.html', {'form': form})
